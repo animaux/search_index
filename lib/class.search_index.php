@@ -408,7 +408,7 @@ Class SearchIndex {
 				if (preg_match('/'. $boundary . $key . $boundary .'/iu', $text, $match, PREG_OFFSET_CAPTURE, $included[$key])) {
 				  // fix for mb_strpos() [function.mb-strpos]: Offset not contained in string
 				  // based on https://www.getsymphony.com/discuss/thread/46163/15/#position-286
-					$p = $match[0][1]-1;
+					$p = $match[0][1]/8*7;
 					if (($q = self::strpos($text, ' ', max(0, $p - $between_start))) !== FALSE) {
 						$end = self::substr($text, $p, $between_end);
 						if (($s = self::strrpos($end, ' ')) !== FALSE) {
