@@ -2,7 +2,7 @@
 <extension id="search_index" status="released" xmlns="http://getsymphony.com/schemas/extension/1.0">
 	<name>Search Index</name>
 	<description>Index text content of entries for efficient fulltext search.</description>
-	<repo type="github">https://github.com/symphonists/search_index</repo>
+	<repo type="github">https://github.com/animaux/search_index</repo>
 	<types>
 		<type>Search</type>
 	</types>
@@ -16,6 +16,10 @@
 		</author>
 	</authors>
 	<releases>
+	  <release version="0.9.7" date="2022-04-04" min="2.7" max="2.x.x">
+			- Imported/merged with @pixelninja’s PHP8-version
+			- removed htmlentities encoding from excerpt in datasource
+		</release>
 		<release version="0.9.5" date="2020-06-03" min="2.4">
 			- PHP 7.3 fixes
 			- fix for mb_strpos() [function.mb-strpos]: Offset not contained in string

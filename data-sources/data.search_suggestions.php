@@ -43,19 +43,18 @@
 			
 		// Set up keywords
 		/*-----------------------------------------------------------------------*/	
-
+			$_GET['term'] = $_GET['term'] ?? null;
 			$keywords = (string)$_GET['term'];
 			$keywords = urldecode($keywords);
 			$keywords = trim($keywords);
-			
-			$sort = '`frequency` DESC';
-			
-// 			$sort = (string)$_GET['sort'];
-// 			if($sort == '' || $sort == 'alphabetical') {
-// 				$sort = '`keywords`.`keyword` ASC';
-// 			} elseif($sort == 'frequency') {
-// 				$sort = '`frequency` DESC';
-// 			}
+
+			$_GET['sort'] = $_GET['sort'] ?? null;
+			$sort = (string)$_GET['sort'];
+			if($sort == '' || $sort == 'alphabetical') {
+				$sort = '`keywords`.`keyword` ASC';
+			} elseif($sort == 'frequency') {
+				$sort = '`frequency` DESC';
+			}
 			
 			if(strlen($keywords) <= 2) return $result;
 					

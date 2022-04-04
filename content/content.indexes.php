@@ -37,7 +37,9 @@
 		}
 		
 		private function __setContext($section_id) {
+			$this->_indexes[$section_id] = $this->_indexes[$section_id] ?? array();
 			$this->_index = $this->_indexes[$section_id];
+
 			if (is_array($this->_sections)) {
 				foreach($this->_sections as $s) {
 					if ($s->get('id') == $section_id) $this->_section = $s;
@@ -46,8 +48,13 @@
 		}
 				
 		public function __prepareEdit($context) {
-			$this->__setContext($context[1]);			
+			if (empty($context)) return false;
+
+			$this->__setContext($context[1]);
 			
+			$this->_index['fields'] = $this->_index['fields'] ?? null;
+			$this->_index['filters'] = $this->_index['filters'] ?? null;
+
 			if (!is_array($this->_index['fields'])) $this->_index['fields'] = array($this->_index['fields']);
 			if (!is_array($this->_index['filters'])) $this->_index['filters'] = array($this->_index['filters']);
 		}
@@ -91,7 +98,8 @@
 			
 			$this->_indexes[$this->_section->get('id')]['fields'] = $fields['included_elements'];
 			$this->_indexes[$this->_section->get('id')]['weighting'] = $fields['weighting'];
-			
+			$fields['filter'] = $fields['filter'] ?? null;
+
 			if (!is_array($fields['filter'])) $fields['filter'] = array($fields['filter']);
 			
 			$filters = array();
@@ -149,6 +157,7 @@
 			$group->appendChild($div);
 			
 			$weighting_options = array();
+			$this->_index['weighting'] = $this->_index['weighting'] ?? null;
 			if ($this->_index['weighting'] == NULL) $this->_index['weighting'] = 2;
 			foreach($this->_weightings as $i => $w) {
 				$weighting_options[] = array(
@@ -213,6 +222,8 @@
 					if(!$input->canFilter()) continue;
 							
 					if(isset($this->_index['filters'][$input->get('id')])){
+						$this->_errors[$input->get('id')] = $this->_errors[$input->get('id')] ?? null;
+
 						$wrapper = new XMLElement('li');
 						$wrapper->setAttribute('class', 'unique');
 						$wrapper->setAttribute('data-type', $input->get('element_name'));
@@ -278,7 +289,7 @@
 			}
 			
 			else {
-				
+				$_GET['section'] = $_GET['section'] ?? null;
 				$re_index = explode(',', $_GET['section']);
 				
 				foreach ($this->_sections as $section) {
@@ -298,21 +309,25 @@
 					if ($index) {
 						$col_name->appendChild(Widget::Input("items[{$section->get('id')}]", null, 'checkbox'));
 					}
-					
-					if ($index && isset($index['fields']) && (count($index['fields']) > 0)) {
-						$section_fields = $section->fetchFields();
-						$fields = $this->_indexes[$section->get('id')]['fields'];
-						$fields_list = '';
-						foreach($section_fields as $section_field) {
-							if (in_array($section_field->get('element_name'), array_values($fields))) {
-								$fields_list .= $section_field->get('label') . ', ';
-							}
-						}
-						$fields_list = trim($fields_list, ', ');
-						$col_fields = Widget::TableData($fields_list);
-					} else {
-						$col_fields = Widget::TableData(__('None'), 'inactive');
-					}
+
+          if (!is_null($index) && isset($index['fields']) && is_countable($index['fields'])) {
+              if (is_countable($index['fields'])) {
+                  $section_fields = $section->fetchFields();
+                  $fields = $this->_indexes[$section->get('id')]['fields'];
+                  $fields_list = '';
+                  foreach($section_fields as $section_field) {
+                      if (in_array($section_field->get('element_name'), array_values($fields))) {
+                          $fields_list .= $section_field->get('label') . ', ';
+                      }
+                  }
+                  $fields_list = trim($fields_list, ', ');
+                  $col_fields = Widget::TableData($fields_list);
+              } else {
+                  $col_fields = Widget::TableData(__('None'), 'inactive');
+              }
+          } else {
+              $col_fields = Widget::TableData(__('None'), 'inactive');
+          }
 					
 					if ($index) {
 						if($index['weighting'] == '') $index['weighting'] = 2;

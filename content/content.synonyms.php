@@ -27,7 +27,7 @@
 		}
 				
 		public function __prepareEdit($context) {
-			$this->__setContext($context[1]);
+			if (isset($context[1])) $this->__setContext($context[1]);
 		}
 		
 		public function __actionIndex() {
@@ -71,6 +71,9 @@
 			$this->setPageType('form');
 			$this->setTitle(__('Symphony') . ' &ndash; ' . __('Search Indexes'));
 			
+			$this->_synonym['word'] = $this->_synonym['word'] ?? '';
+			$this->_synonym['synonyms'] = $this->_synonym['synonyms'] ?? '';
+
 			$subheading = !empty($this->_synonym['word']) ? $this->_synonym['word'] : __('Untitled');
 			$this->appendSubheading($subheading);
 			$this->insertBreadcrumbs(array(

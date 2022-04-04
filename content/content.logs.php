@@ -14,7 +14,7 @@
 		public function __viewIndex() {
 			$this->setPageType('table');
 			$this->setTitle(__('Symphony') . ' &ndash; ' . __('Search Indexes'));
-			
+			$_GET['pg'] = $_GET['pg'] ?? 1;
 			$page = (@(integer)$_GET['pg'] > 1 ? (integer)$_GET['pg'] : 1);
 			$page_size = (int)Symphony::Configuration()->get('pagination_maximum_rows', 'symphony');
 			

@@ -73,7 +73,7 @@
 		* @param string $fieldnamePostfix
 		*/
 		public function displayPublishPanel(XMLElement &$wrapper, $data = null, $error = null, $prefix = null, $postfix = null, $entry_id = null) {
-			$value = $data['value'];
+			$value = $data['value'] ?? null;
 			$label = Widget::Label($this->get('label'));
 			if($this->get('required') != 'yes') $label->appendChild(new XMLElement('i', __('Optional')));			
 		}

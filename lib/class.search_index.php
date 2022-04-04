@@ -13,7 +13,7 @@ Class SearchIndex {
 	/**
 	* Set up static members
 	*/
-	private function assert() {
+	private static function assert() {
 		if (self::$_entry_xml_datasource == NULL) self::$_entry_xml_datasource = new EntryXMLDataSource(NULL, FALSE);
 	}
 	
@@ -45,7 +45,7 @@ Class SearchIndex {
 	* @param int $entry
 	* @param int $section
 	*/
-	public function indexEntry($entry, $section, $check_filters=TRUE) {
+	public static function indexEntry($entry, $section, $check_filters=TRUE) {
 		self::assert();
 		
 		if (is_object($entry)) $entry = $entry->get('id');
@@ -68,12 +68,16 @@ Class SearchIndex {
 				
 				// modified from the core's class.datasource.php
 				
+				$where = false;
+				$joins = false;
+				$group = false;
+
 				// create filters and build SQL required for each
 				if(is_array($section_index['filters']) && !empty($section_index['filters'])) {				
-					
 					foreach($section_index['filters'] as $field_id => $filter){
-
-						if((is_array($filter) && empty($filter)) || trim($filter) == '') continue;
+						if((is_array($filter) && empty($filter)) || trim($filter) == '') {
+							continue;
+						}
 						
 						if(!is_array($filter)){
 							$filter_type = DataSource::__determineFilterType($filter);
@@ -83,13 +87,15 @@ Class SearchIndex {
 
 							$value = array_map(array('Datasource', 'removeEscapedCommas'), $value);
 						}
+						else {
+							$value = $filter;
+						}
 
-						else $value = $filter;
-
-						if(!isset($fieldPool[$field_id]) || !is_object($fieldPool[$field_id]))
+						if(!isset($fieldPool[$field_id]) || !is_object($fieldPool[$field_id])) {
 							$fieldPool[$field_id] =& FieldManager::fetch($field_id);
+						}
 
-						if($field_id != 'id' && !($fieldPool[$field_id] instanceof Field)){
+						if($field_id != 'id' && !($fieldPool[$field_id] instanceof Field)) {
 							throw new Exception(
 								__(
 									'Error creating field object with id %1$d, for filtering in data source "%2$s". Check this field exists.', 
@@ -98,9 +104,13 @@ Class SearchIndex {
 							);
 						}
 
-						if($field_id == 'id') $where = " AND `e`.id IN ('".@implode("', '", $value)."') ";
-						else{ 
-							if(!$fieldPool[$field_id]->buildDSRetrievalSQL($value, $joins, $where, ($filter_type == 'DS_FILTER_AND' ? true : false))){ $this->_force_empty_result = true; return; }
+						if($field_id == 'id') {
+							$where = " AND `e`.id IN ('".@implode("', '", $value)."') ";
+						}
+						else { 
+							if (!$fieldPool[$field_id]->buildDSRetrievalSQL($value, $joins, $where, ($filter_type == 'DS_FILTER_AND' ? true : false))) {
+								$this->_force_empty_result = true; return;
+							}
 							if(!$group) $group = $fieldPool[$field_id]->requiresSQLGrouping();
 						}
 											
@@ -178,7 +188,7 @@ Class SearchIndex {
 	*
 	* @param int $entry
 	*/
-	public function deleteEntryKeywords($entry_id) {
+	public static function deleteEntryKeywords($entry_id) {
 		// get all keywords for this entry
 		$keywords = Symphony::Database()->fetch(sprintf("SELECT keyword_id FROM `tbl_search_index_entry_keywords` WHERE `entry_id` = %d", $entry_id));
 		// delete the keyword association (unlink the keyword from the entry)
@@ -192,7 +202,7 @@ Class SearchIndex {
 		}
 	}
 	
-	public function saveEntryKeywords($entry_id, $data) {
+	public static function saveEntryKeywords($entry_id, $data) {
 		
 		// delete keyword associations for this entry
 		self::deleteEntryKeywords($entry_id);
@@ -207,18 +217,20 @@ Class SearchIndex {
 			$data = utf8_encode($data);
 		}
 
-		// $data = preg_replace('~&#x([0-9a-f]+);~ei', 'chr(hexdec("\\1"))', $data);
-    $data = preg_replace_callback('~&#x([0-9a-f]+);~i', 
-      function($m) { return chr(hexdec($m[1])); },
-      $data
+		$data = preg_replace_callback('~&#x([0-9a-f]+);~i', 
+			function($m) {
+				return chr(hexdec($m[1]));
+			},
+			$data
 		);
-		
-	  //$data = preg_replace('~&#([0-9]+);~e', 'chr("\\1")', $data);
-	  $data = preg_replace_callback('~&#([0-9]+);~', 
-      function($m) { return chr($m[1]); },
-      $data
-    );
-	  
+
+		$data = preg_replace_callback('~&#([0-9]+);~', 
+			function($m) {
+				return chr($m[1]);
+			},
+			$data
+		);
+
 		$data = strip_punctuation($data);
 		
 		$words = explode(' ', trim($data));
@@ -293,7 +305,7 @@ Class SearchIndex {
 	*
 	* @param int $section_id
 	*/
-	public function deleteIndexBySection($section_id) {
+	public static function deleteIndexBySection($section_id) {
 		$entries = Symphony::Database()->fetch(sprintf("SELECT id FROM `tbl_entries` WHERE `section_id` = %d", $section_id));
 		foreach($entries as $entry) {
 			self::deleteIndexByEntry($entry['id']);
@@ -305,7 +317,7 @@ Class SearchIndex {
 	*
 	* @param int $entry_id
 	*/
-	public function deleteIndexByEntry($entry_id) {
+	public static function deleteIndexByEntry($entry_id) {
 		self::deleteEntryKeywords($entry_id);
 		Symphony::Database()->query(
 			sprintf(
@@ -323,34 +335,6 @@ Class SearchIndex {
 	*
 	* @param string $string
 	*/
-// 	public function manipulateKeywords($string) {
-// 		
-// 		// replace spaces within quoted phrases
-// 		$string = preg_replace('/"(?:[^\\"]+|\\.)*"/e', "str_replace(' ', 'SEARCH_INDEX_SPACE', '$0')", $string);
-// 		// correct slashed quotes sa a result of above
-// 		$string = stripslashes(trim($string));
-// 		
-// 		$keywords = '';
-// 		
-// 		// get each word
-// 		foreach(explode(' ', $string) as $word) {
-// 			if (!preg_match('/^(\-|\+)/', $word) && !preg_match('/^"/', $word)) {
-// 				if (Symphony::Configuration()->get('append-all-words-required', 'search_index') == 'yes') {
-// 					$word = '+' . $word;
-// 				}
-// 				if (!preg_match('/\*$/', $word) && Symphony::Configuration()->get('append-wildcard', 'search_index') == 'yes') {
-// 					$word = $word . '*';
-// 				}
-// 			}
-// 			$keywords .= $word . ' ';
-// 		}
-// 		
-// 		$keywords = trim($keywords);
-// 		$keywords = preg_replace('/SEARCH_INDEX_SPACE/', ' ', $keywords);
-// 		
-// 		return $keywords;
-// 	}
-	
 	public static function parseExcerpt($keywords, $text) {
 	
 		$text = trim($text);
@@ -405,6 +389,7 @@ Class SearchIndex {
 				}
 				// Locate a keyword (position $p), then locate a space in front (position
 				// $q) and behind it (position $s)
+				$boundary = $boundary ?? '';
 				if (preg_match('/'. $boundary . $key . $boundary .'/iu', $text, $match, PREG_OFFSET_CAPTURE, $included[$key])) {
 				  // fix for mb_strpos() [function.mb-strpos]: Offset not contained in string
 				  // based on https://www.getsymphony.com/discuss/thread/46163/15/#position-286
