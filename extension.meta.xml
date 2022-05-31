@@ -16,6 +16,9 @@
 		</author>
 	</authors>
 	<releases>
+	  <release version="0.9.8" date="2022-03-31" min="2.7" max="2.x.x">
+			- Fix for »Non-static method … cannot be called statically« in class.search_index.php
+		</release>
 	  <release version="0.9.7" date="2022-04-04" min="2.7" max="2.x.x">
 			- Imported/merged with @pixelninja’s PHP8-version
 			- removed htmlentities encoding from excerpt in datasource

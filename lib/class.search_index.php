@@ -169,7 +169,7 @@ Class SearchIndex {
 	* @param int $section
 	* @param string $data
 	*/
-	public function saveEntryIndex($entry_id, $section_id, $data) {
+	public static function saveEntryIndex($entry_id, $section_id, $data) {
 		// stores the full entry text
 		Symphony::Database()->insert(
 			array(
