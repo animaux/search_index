@@ -213,3 +213,4 @@ Column descriptions:
 ## Known issues
 * you can not order results by relevance score when using a single data source. This is only available when using the custom Search Index data source
 * if you hit the word-length limitations using boolean fulltext searching, try an alternative `mode` (`like` or `regexp`).
+* If reindexing indexes via `/symphony/extension/search_index/indexes/` fails (e. g. too large number of entries), you should use https://github.com/alpacaaa/resave_entries and trigger resaving of the entries in this index, which makes them being reindexed page-wise.
